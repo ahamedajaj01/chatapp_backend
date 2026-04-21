@@ -31,8 +31,8 @@ This is a simple backend for a chat application built using FastAPI, PostgreSQL,
 ### 1. Clone project
 
 ```bash
-git clone <your_repo_link>
-cd chatapp
+git clone https://github.com/ahamedajaj01/chatapp_backend.git
+cd chatapp_backend
 ```
 ### 2. Set up virtual environment
 ```bash
