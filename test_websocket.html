@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 8px;
+            flex-grow: 1;
+        }
+
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .msg {
+            margin-bottom: 5px;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebSocket Chat Test</h1>
+    <div class="controls">
+        <input type="text" id="token" placeholder="Enter JWT Token">
+        <input type="number" id="roomId" placeholder="Room ID" value="1">
+        <button onclick="connect()">Connect</button>
+    </div>
+    <div id="messages"></div>
+    <div class="controls">
+        <input type="text" id="messageInput" placeholder="Type a message..."
+            onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let ws;
+
+        function connect() {
+            const token = document.getElementById('token').value;
+            const roomId = document.getElementById('roomId').value;
+            if (!token) { alert("Please enter a token"); return; }
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//localhost:8000/ws/${roomId}?token=${token}`;
+
+            if (ws) ws.close();
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                appendMessage("System", "Connected to room " + roomId);
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                appendMessage(data.username, data.content, data.timestamp);
+            };
+
+            ws.onclose = (event) => {
+                let reason = "Disconnected";
+                if (event.code === 4003) reason = "Auth Failed (Invalid Token)";
+                if (event.code === 4004) reason = "Room Not Found (Create it first in Swagger!)";
+                appendMessage("System", `${reason} (Code: ${event.code})`);
+            };
+
+            ws.onerror = (error) => {
+                appendMessage("System", "Error occurred");
+                console.error(error);
+            };
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            if (ws && ws.readyState === WebSocket.OPEN && input.value) {
+                ws.send(input.value);
+                input.value = '';
+            }
+        }
+
+        function appendMessage(user, content, timestamp) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'msg';
+
+            const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString() : '';
+
+            div.innerHTML = `<span class="username">${user}:</span> <span>${content}</span> <span class="timestamp">${timeStr}</span>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>
