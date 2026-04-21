@@ -76,9 +76,10 @@ payload example:
   "username": "test",
   "email": "test@gmail.com",
   "password": "123456",
-  "role": "user" or "admin" # Defaults to user if not provided
+  "role": "user" 
 }
 ```
+*(Note: role defaults to "user" if not provided)*
 - `POST /auth/login`: Authenticate and receive a JWT token.
 payload example:
 ```json

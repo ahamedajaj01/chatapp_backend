@@ -63,19 +63,24 @@ async def websocket_endpoint(
 
     try:
         while True:
-            # wait for message from client
-            data = await websocket.receive_text()
-            
-            # save message in db
-            db_msg = save_message(db, content=data, user_id=user.id, room_id=room_id)
-            
-            # send message to everyone in room
-            await manager.broadcast({
-                "id": db_msg.id,
-                "content": db_msg.content,
-                "username": user.username,
-                "timestamp": db_msg.timestamp.isoformat()
-            }, room_id)
+            try:
+                # wait for message from client
+                data = await websocket.receive_text()
+                
+                # save message in db
+                db_msg = save_message(db, content=data, user_id=user.id, room_id=room_id)
+                
+                # send message to everyone in room
+                await manager.broadcast({
+                    "id": db_msg.id,
+                    "content": db_msg.content,
+                    "username": user.username,
+                    "timestamp": db_msg.timestamp.isoformat()
+                }, room_id)
+            except Exception as e:
+                print(f"Error processing message: {e}")
+                # We don't break here so the connection stays open
+                continue
             
     except WebSocketDisconnect:
         # remove user when disconnected
