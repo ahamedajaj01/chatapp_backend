@@ -5,7 +5,7 @@ class UserCreate(BaseModel):
     username: str
     email: str
     password: str = Field(..., min_length=6)
-    role: Literal["user", "admin"] # Role must be user or admin
+    role: Literal["user", "admin"] = "user" # Defaults to user if not provided
 
 class UserLogin(BaseModel):
     email: str
